@@ -8,6 +8,8 @@ A simple automated dependency injection library for TypeScript that can be used 
 
 # Features
 
+- Less than 300 lines of code.
+- Configuration via TypeScript decorators.
 - Automated dependency injection. Just add mark up and let the library do the wiring for you.
 - Uses TypeScript decorators to:
     - Mark classes for injection.
@@ -19,6 +21,8 @@ A simple automated dependency injection library for TypeScript that can be used 
 # Examples
 
 See the examples sub-directory for runnable Node.js and React examples.
+
+Read the individual readme files for instructions.
 
 # Usage
 

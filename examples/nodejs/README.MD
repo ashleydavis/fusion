@@ -1,6 +1,6 @@
 A simple example of using Fusion in TypeScript under Node.js.
 
-This example shows how a logging service could be injected into another class.
+This example shows how a logging service can be automatically injected into another class.
 
 To run this:
 

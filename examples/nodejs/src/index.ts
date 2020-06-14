@@ -1,4 +1,4 @@
-import { InjectProperty, InjectableClass, InjectableSingleton } from "../../../src/index";
+import { InjectProperty, InjectableClass, InjectableSingleton } from "@codecapers/fusion";
 
 //
 // Interface to the logging service.
@@ -8,7 +8,7 @@ interface ILog {
 }
 
 //
-// This is a lazily injected singleton that's constructed when it's injected.
+// This is a lazily injected singleton that's constructed just before it's injected.
 //
 @InjectableSingleton("ILog")
 class Log implements ILog {

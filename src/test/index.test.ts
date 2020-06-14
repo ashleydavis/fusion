@@ -162,8 +162,11 @@ describe("fusion", () => {
             dep!: IMySingleton2;
         }
 
-        expect(new MyClass1().dep).toBeDefined();
-        expect(new MyClass2().dep).toBeDefined();
+        const theInstance1 = new MyClass1();
+        expect(theInstance1.dep).toBeDefined();
+
+        const theInstance2 = new MyClass1();
+        expect(theInstance2.dep).toBe(theInstance1.dep);
         expect(numInstances).toBe(1);
     });
 

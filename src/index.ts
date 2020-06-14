@@ -180,7 +180,7 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
         }
         
         const instantiatedSingleton = Reflect.construct(makeConstructorInjectable(singletonConstructor), []);
-        instantiatedSingletons.set(dependencyId, instantiateSingleton);
+        instantiatedSingletons.set(dependencyId, instantiatedSingleton);
         if (verbose) {
             log.info("= Lazily instantiated singleton: " + dependencyId);
         }

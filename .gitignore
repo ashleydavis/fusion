@@ -60,3 +60,4 @@ typings/
 build/
 *.bak
 src/todo.txt
+examples/react/src/react-app-env.d.ts

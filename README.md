@@ -1,114 +1,106 @@
-# typescript-template
+# fusion
 
-A template for a TypeScript app. To make it easier to start a new app without having to go through all the configuration.
+A simple automated dependency injection library for TypeScript that can be used with React.
 
-## Features
+# Aims
 
-- Example module.
-- Example command line app (installable via npm install -g)
-- Testing using Jest.
-- Linting using tslint.
-- Debugging setup for VS Code.
+- To have a simple dependency injection library with minimal configuration that can be used in TypeScript code and with React.
 
-## Usage
+# Features
 
-When you want to start a new TypeScript app:
+- Automated dependency injection. Just add mark up and let the library do the wiring for you.
+- Uses TypeScript decorators to:
+    - Mark classes for injection.
+    - Mark properties for injection.
+    - Mark singletons for lazy creation and injection.
+- Can detect and break circular references (with an error) at any level of nesting.
+- Unit tested.
 
-- Copy this repo
-- Search and replace 'typescript-template' to 'your-module-name' across the entire repo
-- Install your own custom dependencies
-- Add your custom code.
-- Add to your own Github or Bitbucket repo (you can npm install from a Git repo! Even a private one!)
-- If necessary, publish to npm using `npm publish`.
+# Examples
 
-You now have a reusable code module and/or command line app that you can 'npm install' and share with your team mates.
+See the examples sub-directory for runnable Node.js and React examples.
 
-## Get the code
+# Usage
 
-Clone or download and unpack the repo.
+First enable decorators in your `tsconfig.json` file:
 
-Install local dependencies
+```json
+    "experimentalDecorators": true
+```
 
-    cd your-module-name
-    npm install
+Install it:
 
-## Installation
+```bash
+npm install --save @codecapers/fusion
+```
 
-Once you publish you can install via npm and use it from TypeScript or JavaScript or from the command line.
-
-### From code
-
-Import and use it (in a TypeScript file):
+Import the bits you need:
 
 ```typescript
-import { ExampleClass } from 'your-module-name';
-
-var example = new ExampleClass();
-console.log(example.returnsTrue());
+import { InjectProperty, InjectableClass, InjectableSingleton } from "@codecapers/fusion";
 ```
 
-Import and use it (from JavaScript):
+Create dependencies that can be injected:
 
-```javascript
-var yourModule = require('your-module-name');
-var ExampleClass = yourModule.ExampleClass;
+```typescript
+//
+// Interface to the logging service.
+//
+interface ILog {
+    info(msg: string): void;
+}
 
-var example = new ExampleClass();
-console.log(example.returnsTrue());
+//
+// This is a lazily injected singleton that's constructed when it's injected.
+//
+@InjectableSingleton("ILog")
+class Log implements ILog {
+    info(msg: string): void {
+        console.log(msg);
+    }
+}
 ```
 
-### From command line
+Mark up your class to have dependencies injected:
 
-You can also run your published module as a command line app.
+```typescript
+@InjectableClass()
+class MyClass {
 
-For example, install it globally:
+    //
+    // Injects the logging service into this property.
+    //
+    @InjectProperty("ILog")
+    log!: ILog;
 
-    npm install -g your-module-name
+    myFunction() {
+        //
+        // Use the injected logging service.
+        // By the time we get to this code path the logging service 
+        // has been automatically constructed and injected.
+        //
+        this.log.info("Hello world!");
+    }
+    
+}
+```
 
-Then run it:
+Now instance your injectable class:
 
-    your-module-name-cli [args]
+```typescript
+// The logging singleton is lazily created at this point.
+const myObject = new MyClass(); 
+```
 
-## Building the code
+Injected properties are solved during constructor after the constructor of class has been called.
 
-Open folder in Visual Studio Code and hit Ctrl+Shift+B
+So after your class is constructed you can call functions that rely on injected properties:
 
-Or
+```typescript
+myObject.myFunction();
+```
 
-    cd typescript-template
-    npm run build
+Have fun! There's more to it than this of course, but getting started is that simple.
 
-## Debugging
+Stay tuned, a blog post and more docs are coming soon.
 
-- Open in Visual Studio Code.
-- Select 'Main' debug configuration.
-- Select the 'Test All' or 'Test Current' debug configuration to debug all tests or the current test file.
-- Set your breakpoints.
-- Hit F5 to run.
-
-## Build and run
-
-Compile the application:
-
-    npm run build
-
-The run the compiled JavaScript:
-
-    npm start
-
-## Running without building
-
-Run the command line app directly:
-
-    npm start:dev
-
-Run tests directly:
-
-    npm test
-
-Or:
-
-    npm run test:watch
-
-
-**Checkout** package.json for more scripts!

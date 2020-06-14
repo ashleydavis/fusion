@@ -1,5 +1,5 @@
 {
-    "name": "@codecapers/typescript",
+    "name": "@codecapers/fusion",
     "version": "1.0.0",
     "description": "A simple automated dependency injection library for TypeScript.",
     "main": "build/index.js",

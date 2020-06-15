@@ -83,9 +83,9 @@ const injectionMap = new Set<string>();
 //
 let verbose: boolean = false;
 
-/**
- * Manually register a singleton.
- */
+//
+// Manually registers a singleton.
+//
 export function registerSingleton(dependencyId: string, singleton: any): void {
     if (verbose) {
         log.info("@@@@ Manually registered singleton: " + dependencyId);
@@ -104,7 +104,7 @@ function makeConstructorInjectable(origConstructor: Function): Function {
     }
 
     if (!origConstructor.prototype.__injections__) {
-        // Record properties to be injected against the consturctor prototype.
+        // Record properties to be injected against the constructor prototype.
         origConstructor.prototype.__injections__ = []; 
     }
 
@@ -145,7 +145,7 @@ function makeConstructorInjectable(origConstructor: Function): Function {
 
 //
 // Instantiates a singleton.
-// If it's already instantated then that one is returned instead.
+// If it's already instantiated then the original is returned instead.
 //
 export function instantiateSingleton<T = any>(dependencyId: string): T {
     if (verbose) {
@@ -158,11 +158,13 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
             if (verbose) {
                 log.info("= Singleton already exists: " + dependencyId);
             }
+            // The singleton has previously been instantiated.
             return existingSingleton;
         }
     
         const singletonConstructor = singletonConstructors.get(dependencyId);
         if (!singletonConstructor) {
+            // The requested constructor was not found. 
             const msg = "No constructor found for singleton " + dependencyId;
             log.error(msg);
             log.info("Available constructors: \r\n" +
@@ -179,7 +181,10 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
             log.info("= Lazily instantiating singleton: " + dependencyId);
         }
         
+        // Construct the singleton.
         const instantiatedSingleton = Reflect.construct(makeConstructorInjectable(singletonConstructor), []);
+
+        // Cache the instantiated singleton for later reuse.
         instantiatedSingletons.set(dependencyId, instantiatedSingleton);
         if (verbose) {
             log.info("= Lazily instantiated singleton: " + dependencyId);
@@ -237,14 +242,15 @@ export function InjectableSingleton(dependencyId: string): Function {
     if (verbose) {
         log.info("@@@@ Registering singleton " + dependencyId);
     }
-    //
+
     // Returns a factory function that records the constructor of the class so that
-    // it can be lazily created later as as singleton when required as a dependency.
-    //
+    // it can be lazily created later as as a singleton when required as a dependency.
     return (target: Function): void => {
         if (verbose) {
             log.info("@@@@ Caching constructor for singleton: " + dependencyId);
         }
+
+        // Adds the target constructor to the set of lazily createable singletons.
         singletonConstructors.set(dependencyId, target);
     }
 }
@@ -255,34 +261,27 @@ export function InjectableSingleton(dependencyId: string): Function {
 // Not require for singletons, they are automatically injectable.
 //
 export function InjectableClass(): Function {
-    //
     // Returns a factory function that creates a proxy constructor.
-    //
     return makeConstructorInjectable;
 }
 
 //
 // TypeScript decorator:
-// Injects a dependency to a field.
+// Injects a dependency to a property.
 //
 export function InjectProperty(dependencyId: string): Function {
-    //
     // Returns a function that is invoked for the property that is to be injected.
-    //
     return (prototype: any, propertyKey: string): void => {
         if (verbose) {
             log.info("@@@@ Setup to inject " + dependencyId + " to property " + propertyKey + " in " + prototype.constructor.name);
         }
 
         if (!prototype.__injections__) {
-            // Record properties to be injected against the consturctor prototype.
+            // Record properties to be injected against the constructor prototype.
             prototype.__injections__ = []; 
         }
 
-        //
-        // Record the injection to be resolved later when an instance
-        // of the target class is created.
-        //
+        // Record injections to be resolved later when an instance is created.
         prototype.__injections__.push([propertyKey, dependencyId]);
     };
 }

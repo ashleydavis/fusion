@@ -1,10 +1,26 @@
 import { InjectProperty, InjectableClass, InjectableSingleton } from "@codecapers/fusion";
 
 //
+// Creates a type safe reference to a dependency.
+//
+export function createDependencyRef<T>(name: string): { T: T; id: string } {
+	return {
+		T: null!,
+		id: name
+	};
+}
+//
 // Interface to the logging service.
 //
 interface ILog {
     info(msg: string): void;
+}
+
+//
+// Extend the ILog namespace to create the dependency reference.
+//
+namespace ILog {
+    export const ref = createDependencyRef<ILog>("ILog");
 }
 
 //
@@ -23,8 +39,8 @@ class MyClass {
     //
     // Injects the logging service into this property.
     //
-    @InjectProperty("ILog")
-    log!: ILog;
+    @InjectProperty(ILog.ref.id)
+    log!: typeof ILog.ref.T;
 
     myFunction() {
         //

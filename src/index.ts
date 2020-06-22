@@ -3,6 +3,8 @@
 //
 let injectorEnabled = true;
 
+let enableCircularCheck = process && process.env && process.env.NODE_ENV !== "production";
+
 //
 // Enable the injector.
 //
@@ -75,6 +77,7 @@ const instantiatedSingletons = new Map<string, any>();
 //
 // What is currently being injected.
 // This allows us to deals with circular dependencies.
+// This is only enabled when NODE_ENV is not equal to "production".
 //
 const injectionMap = new Set<string>();
 
@@ -139,7 +142,7 @@ function makeConstructorInjectable(origConstructor: Function): Function {
 
     // Wrap the original constructor in a proxy.
     // Use the proxy to inject dependencies.
-    // Returns the proxy consturctor to use in place of the original constructor.
+    // Returns the proxy constructor to use in place of the original constructor.
     return new Proxy(origConstructor, proxyHandler);
 }
 
@@ -201,18 +204,20 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
 //
 // Resolve dependencies for properties of an instantiated object.
 //
-function resolvePropertyDependencies(constructorName: string, obj: any, __injections__: any[]): void {
+function resolvePropertyDependencies(constructorName: string, obj: any, injections: any[]): void {
 
-    if (__injections__) {
-        if (injectionMap.has(constructorName)) {
-            throw new Error(`${constructorName} has already been injected, this exception breaks a circular reference that would crash the app.`);
+    if (injections) {
+        if (enableCircularCheck) {
+            if (injectionMap.has(constructorName)) {
+                throw new Error(`${constructorName} has already been injected, this exception breaks a circular reference that would crash the app.`);
+            }
+
+            injectionMap.add(constructorName);
         }
-
-        injectionMap.add(constructorName);
 
         try {
 
-            for (const injection of __injections__) {
+            for (const injection of injections) {
                 const dependencyId = injection[1];
                 
                 if (verbose) {
@@ -228,7 +233,9 @@ function resolvePropertyDependencies(constructorName: string, obj: any, __inject
             }
         }
         finally {
-            injectionMap.delete(constructorName);
+            if (enableCircularCheck) {
+                injectionMap.delete(constructorName);
+            }
         }
     }
 }
@@ -271,9 +278,9 @@ export function InjectableClass(): Function {
 //
 export function InjectProperty(dependencyId: string): Function {
     // Returns a function that is invoked for the property that is to be injected.
-    return (prototype: any, propertyKey: string): void => {
+    return (prototype: any, propertyName: string): void => {
         if (verbose) {
-            log.info("@@@@ Setup to inject " + dependencyId + " to property " + propertyKey + " in " + prototype.constructor.name);
+            log.info("@@@@ Setup to inject " + dependencyId + " to property " + propertyName + " in " + prototype.constructor.name);
         }
 
         if (!prototype.__injections__) {
@@ -282,6 +289,6 @@ export function InjectProperty(dependencyId: string): Function {
         }
 
         // Record injections to be resolved later when an instance is created.
-        prototype.__injections__.push([propertyKey, dependencyId]);
+        prototype.__injections__.push([propertyName, dependencyId]);
     };
 }

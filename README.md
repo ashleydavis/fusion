@@ -17,6 +17,7 @@ A simple automated dependency injection library for TypeScript that can be used 
     - Mark singletons for lazy creation and injection.
 - Can detect and break circular references (with an error) at any level of nesting.
 - Unit tested.
+- Automatically detects circular dependencies when NODE_ENV is not set to "production".
 
 # Examples
 

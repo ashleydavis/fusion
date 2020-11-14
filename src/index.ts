@@ -147,6 +147,20 @@ function makeConstructorInjectable(origConstructor: Function): Function {
 }
 
 //
+// Returns true if a singleton is registered.
+//
+export function isSingletonRegistered(dependencyId: string): boolean {
+    return singletonConstructors.has(dependencyId);
+}
+
+//
+// Returns true if a singleton is instantiated.
+//
+export function isSingletonInstantiated(dependencyId: string): boolean {
+    return instantiatedSingletons.has(dependencyId);
+}
+
+//
 // Instantiates a singleton.
 // If it's already instantiated then the original is returned instead.
 //

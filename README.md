@@ -1,6 +1,11 @@
-# fusion
+# Fusion
 
-A simple automated dependency injection library for TypeScript that can be used with React.
+A simple automated dependency injection (DI) library for TypeScript that can be used with React.
+
+Learn more about Fusion in this blog post:
+- [https://www.the-data-wrangler.com/roll-your-own-di](https://www.the-data-wrangler.com/roll-your-own-di)
+
+If you like this project, please star this repo and [follow the developer on Twitter](https://twitter.com/ashleydavis75).
 
 # Aims
 

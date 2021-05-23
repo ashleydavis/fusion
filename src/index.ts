@@ -84,7 +84,7 @@ const injectionMap = new Set<string>();
 //
 // Set to true to enable verbose mode.
 //
-let verbose: boolean = true;
+let verbose: boolean = false;
 
 //
 // Manually registers a singleton.

@@ -84,7 +84,7 @@ const injectionMap = new Set<string>();
 //
 // Set to true to enable verbose mode.
 //
-let verbose: boolean = false;
+let verbose: boolean = true;
 
 //
 // Manually registers a singleton.
@@ -266,13 +266,15 @@ export function InjectableSingleton(dependencyId: string): Function {
 
     // Returns a factory function that records the constructor of the class so that
     // it can be lazily created later as as a singleton when required as a dependency.
-    return (target: Function): void => {
+    return (origConstructor: Function): Function => {
         if (verbose) {
             log.info("@@@@ Caching constructor for singleton: " + dependencyId);
         }
 
         // Adds the target constructor to the set of lazily createable singletons.
-        singletonConstructors.set(dependencyId, target);
+        singletonConstructors.set(dependencyId, origConstructor);
+
+        return makeConstructorInjectable(origConstructor);
     }
 }
 

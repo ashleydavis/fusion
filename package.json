@@ -1,6 +1,6 @@
 {
     "name": "@codecapers/fusion",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A simple automated dependency injection library for TypeScript.",
     "main": "build/index.js",
     "types": "build/index.d.ts",
@@ -25,7 +25,11 @@
         "type": "git",
         "url": "git+https://ashleydavis@github.com/ashleydavis/fusion.git"
     },
-    "keywords": ["typescript", "dependency injection", "di"],
+    "keywords": [
+        "typescript",
+        "dependency injection",
+        "di"
+    ],
     "author": "ashley@codecapers.com.au",
     "license": "MIT",
     "bugs": {

@@ -79,7 +79,7 @@ const instantiatedSingletons = new Map<string, any>();
 // This allows us to deals with circular dependencies.
 // This is only enabled when NODE_ENV is not equal to "production".
 //
-const injectionMap = new Set<string>();
+const injectionMap = new Set<number>();
 
 //
 // Set to true to enable verbose mode.
@@ -97,6 +97,8 @@ export function registerSingleton(dependencyId: string, singleton: any): void {
     instantiatedSingletons.set(dependencyId, singleton);
 }
 
+let nextConstructorId = 1;
+
 //
 // Takes a constructor and makes it 'injectable'.
 // Wraps the constructor in a proxy that handles injecting dependencies.
@@ -105,6 +107,12 @@ function makeConstructorInjectable(origConstructor: Function): Function {
     if (verbose) {
         log.info("@@@@ Making constructor injectable: " + origConstructor.name);
     }
+
+    if (origConstructor.prototype.__id__ !== undefined) {
+        throw new Error(`Constructor ${origConstructor.name} has already been made injectable with id ${origConstructor.prototype.__id__}.`);
+    }
+
+    origConstructor.prototype.__id__ = nextConstructorId++;
 
     if (!origConstructor.prototype.__injections__) {
         // Record properties to be injected against the constructor prototype.
@@ -128,7 +136,7 @@ function makeConstructorInjectable(origConstructor: Function): Function {
                     //
                     // ... and then resolve property dependencies.
                     //
-                    resolvePropertyDependencies(origConstructor.name, obj, origConstructor.prototype.__injections__);
+                    resolvePropertyDependencies(origConstructor.prototype.__id__, origConstructor.name, obj, origConstructor.prototype.__injections__);
                 }
                 catch (err) {
                     log.error(`Failed to construct ${origConstructor.name} due to exception thrown by ${resolvePropertyDependencies.name}.`);
@@ -199,7 +207,7 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
         }
         
         // Construct the singleton.
-        const instantiatedSingleton = Reflect.construct(makeConstructorInjectable(singletonConstructor), []);
+        const instantiatedSingleton = Reflect.construct(singletonConstructor, []);
 
         // Cache the instantiated singleton for later reuse.
         instantiatedSingletons.set(dependencyId, instantiatedSingleton);
@@ -218,15 +226,19 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
 //
 // Resolve dependencies for properties of an instantiated object.
 //
-function resolvePropertyDependencies(constructorName: string, obj: any, injections: any[]): void {
+function resolvePropertyDependencies(constructorId: number, constructorName: string, obj: any, injections: any[]): void {
+
+    if (verbose) {
+        log.info(`>>>> Resolving dependencies for new instance of ${constructorName}.`);
+    }
 
     if (injections) {
         if (enableCircularCheck) {
-            if (injectionMap.has(constructorName)) {
+            if (injectionMap.has(constructorId)) {
                 throw new Error(`${constructorName} has already been injected, this exception breaks a circular reference that would crash the app.`);
             }
 
-            injectionMap.add(constructorName);
+            injectionMap.add(constructorId);
         }
 
         try {
@@ -248,7 +260,7 @@ function resolvePropertyDependencies(constructorName: string, obj: any, injectio
         }
         finally {
             if (enableCircularCheck) {
-                injectionMap.delete(constructorName);
+                injectionMap.delete(constructorId);
             }
         }
     }
@@ -271,10 +283,12 @@ export function InjectableSingleton(dependencyId: string): Function {
             log.info("@@@@ Caching constructor for singleton: " + dependencyId);
         }
 
-        // Adds the target constructor to the set of lazily createable singletons.
-        singletonConstructors.set(dependencyId, origConstructor);
+        const injectableConstructor = makeConstructorInjectable(origConstructor);
 
-        return makeConstructorInjectable(origConstructor);
+        // Adds the target constructor to the set of lazily createable singletons.
+        singletonConstructors.set(dependencyId, injectableConstructor);
+
+        return injectableConstructor;
     }
 }
 

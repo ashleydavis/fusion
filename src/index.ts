@@ -3,7 +3,26 @@
 //
 let injectorEnabled = true;
 
+//
+// Allows automatic singletons to be enabled/disabled.
+//
+let automaticSingletons = true;
+
 let enableCircularCheck = process && process.env && process.env.NODE_ENV !== "production";
+
+//
+// Enables automatic singleons.
+//
+export function enableAutomaticSingletons(): void {
+    automaticSingletons = true;
+}
+
+//
+// Disables automatic singleons.
+//
+export function disableAutomaticSingletons(): void {
+    automaticSingletons = false;
+}
 
 //
 // Enable the injector.
@@ -95,6 +114,15 @@ export function registerSingleton(dependencyId: string, singleton: any): void {
     }
 
     instantiatedSingletons.set(dependencyId, singleton);
+}
+
+//
+// Register many singletons at once.
+//
+export function registerSingletons(singletons: any): void {
+    for (const [name, singleton] of Object.entries(singletons)) {
+        registerSingleton(name, singleton);
+    }
 }
 
 let nextConstructorId = 1;
@@ -286,7 +314,9 @@ export function InjectableSingleton(dependencyId: string): Function {
         const injectableConstructor = makeConstructorInjectable(origConstructor);
 
         // Adds the target constructor to the set of lazily createable singletons.
-        singletonConstructors.set(dependencyId, injectableConstructor);
+        if (automaticSingletons) {
+            singletonConstructors.set(dependencyId, injectableConstructor);
+        }
 
         return injectableConstructor;
     }

@@ -125,6 +125,13 @@ export function registerSingletons(singletons: any): void {
     }
 }
 
+//
+// Clear all singletons. Useful for testing.
+//
+export function clearSingletons(): void {
+    instantiatedSingletons.clear();
+}
+
 let nextConstructorId = 1;
 
 //

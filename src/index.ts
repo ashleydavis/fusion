@@ -101,6 +101,12 @@ const instantiatedSingletons = new Map<string, any>();
 const injectionMap = new Set<number>();
 
 //
+// Stack of constructor names.
+// Available when verbose mode is enabled.
+//
+const constructorStack: string[] = [];
+
+//
 // Set to true to enable verbose mode.
 //
 let verbose: boolean = false;
@@ -159,27 +165,36 @@ function makeConstructorInjectable(origConstructor: Function): Function {
             
             if (verbose) {
                 log.info("++++ Proxy constructor for injectable class: " + origConstructor.name);
-            }
-        
-            // 
-            // Construct the object ...
-            //
-            const obj = Reflect.construct(target, args, newTarget);
 
-            if (injectorEnabled) {
-                try {
-                    //
-                    // ... and then resolve property dependencies.
-                    //
-                    resolvePropertyDependencies(origConstructor.prototype.__id__, origConstructor.name, obj, origConstructor.prototype.__injections__);
-                }
-                catch (err) {
-                    log.error(`Failed to construct ${origConstructor.name} due to exception thrown by ${resolvePropertyDependencies.name}.`);
-                    throw err;
-                }
+                constructorStack.push(origConstructor.name);
             }
 
-            return obj;
+            try {
+                // 
+                // Construct the object ...
+                //
+                const obj = Reflect.construct(target, args, newTarget);
+
+                if (injectorEnabled) {
+                    try {
+                        //
+                        // ... and then resolve property dependencies.
+                        //
+                        resolvePropertyDependencies(origConstructor.prototype.__id__, origConstructor.name, obj, origConstructor.prototype.__injections__);
+                    }
+                    catch (err) {
+                        log.error(`Failed to construct ${origConstructor.name} due to exception thrown by ${resolvePropertyDependencies.name}.`);
+                        throw err;
+                    }
+                }
+
+                return obj;
+            }
+            finally {
+                if (verbose) {
+                    constructorStack.pop();
+                }
+            }
         }
     };
 
@@ -225,7 +240,10 @@ export function instantiateSingleton<T = any>(dependencyId: string): T {
         const singletonConstructor = singletonConstructors.get(dependencyId);
         if (!singletonConstructor) {
             // The requested constructor was not found. 
-            const msg = "No constructor found for singleton " + dependencyId;
+            let msg = "No constructor found for singleton " + dependencyId;
+            if (constructorStack.length > 0) {
+                msg += `\r\nConstructor stack: ${constructorStack.join(" -> ")}`;
+            }
             log.error(msg);
             log.info("Available constructors: \r\n" +
                 Array.from(singletonConstructors.entries())

@@ -5,7 +5,7 @@ A simple automated dependency injection (DI) library for TypeScript that can be 
 Learn more about Fusion in this blog post:
 - [https://www.the-data-wrangler.com/roll-your-own-di](https://www.the-data-wrangler.com/roll-your-own-di)
 
-If you like this project, please star this repo and [Click here to support my work](https://www.codecapers.com.au/about#support-my-work)
+If you like this project, please star this repo and [support my work](https://www.codecapers.com.au/about#support-my-work)
 
 
 # Aims

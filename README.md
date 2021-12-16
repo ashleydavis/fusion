@@ -1,6 +1,6 @@
 # Fusion
 
-A simple automated dependency injection (DI) library for TypeScript that can be used with React.
+A simple automated dependency injection library for TypeScript, supporting React class and functional components.
 
 Learn more about Fusion in this blog post:
 - [https://www.the-data-wrangler.com/roll-your-own-di](https://www.the-data-wrangler.com/roll-your-own-di)
@@ -36,7 +36,7 @@ Read the individual readme files for instructions.
 First enable decorators in your `tsconfig.json` file:
 
 ```json
-    "experimentalDecorators": true
+"experimentalDecorators": true
 ```
 
 Install it:
@@ -48,8 +48,10 @@ npm install --save @codecapers/fusion
 Import the bits you need:
 
 ```typescript
-import { InjectProperty, InjectableClass, InjectableSingleton } from "@codecapers/fusion";
+import { InjectProperty, InjectableClass, InjectableSingleton, injectable } from "@codecapers/fusion";
 ```
+
+## Create dependencies
 
 Create dependencies that can be injected:
 
@@ -71,6 +73,10 @@ class Log implements ILog {
     }
 }
 ```
+
+**Note:** if you can't get over the magic string, please skip to the last section!
+
+## Inject properties into classes
 
 Mark up your class to have dependencies injected:
 
@@ -111,7 +117,78 @@ So after your class is constructed you can call functions that rely on injected 
 myObject.myFunction();
 ```
 
+## Inject parameters into functions 
+
+This can be used for injection into React functional components.
+
+Create a functional component that needs dependencies:
+
+```javascript
+import React from "react";
+import { injectable } from "@codecapers/fusion";
+
+function myComponent(props, context, dependency1, dependency2) {
+
+    // Setup the component, use your dependencies...
+
+    return (
+        <div>
+            // ... Your JSX goes here ...
+        </div>;
+    );
+}
+```
+
+Wrap your functional component in the `injectable` higher order component (HOC):
+
+```
+export default injectable(myComponent, ["IDependency1", "IDependency2"]);
+```
+
+The export component will have the dependencies injected as parameters in the order specified (after props and context of course).
+
+## Getting rid of the magic strings
+
+I like to get of the magic string by using constants co-located with the dependencies:
+
+```javascript
+const ILog_id = "ILog";
+
+//
+// Interface to the logging service.
+//
+interface ILog {
+    info(msg: string): void;
+}
+
+//
+// This is a lazily injected singleton that's constructed when it's injected.
+//
+@InjectableSingleton(ILog_id)
+class Log implements ILog {
+    info(msg: string): void {
+        console.log(msg);
+    }
+}
+```
+
+Then use the constant to identify your dependencies:
+
+```typescript
+@InjectableClass()
+class MyClass {
+
+    //
+    // Injects the logging service into this property.
+    //
+    @InjectProperty(ILog_id)
+    log!: ILog;
+
+    // ... Other properties and methods ...
+}
+```
+
+
 Have fun! There's more to it than this of course, but getting started is that simple.
 
-Stay tuned, a blog post and more docs are coming soon.
-
+See [the blog post](https://www.the-data-wrangler.com/roll-your-own-di) to learn more.

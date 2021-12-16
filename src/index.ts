@@ -377,3 +377,15 @@ export function InjectProperty(dependencyId: string): Function {
         prototype.__injections__.push([propertyName, dependencyId]);
     };
 }
+
+//
+// Injects a list of dependencies into a function.
+//
+export function injectable(fn: Function, dependencyIds: string []) {
+    return (...args: any) => {
+        return fn(
+            ...args, 
+            ...dependencyIds.map(id => instantiateSingleton(id))
+        );
+    };
+}

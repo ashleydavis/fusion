@@ -14,22 +14,25 @@ If you like this project, please star this repo and [support my work](https://ww
 
 # Features
 
-- Less than 300 lines of code.
+- Less than 400 lines of code (used to be 300, but you know how it goes, I keep adding extra stuff)
 - Configuration via TypeScript decorators.
-- Automated dependency injection. Just add mark up and let the library do the wiring for you.
-- Uses TypeScript decorators to:
-    - Mark classes for injection.
-    - Mark properties for injection.
-    - Mark singletons for lazy creation and injection.
-- Can detect and break circular references (with an error) at any level of nesting.
+- Injects properties into generic TypeScript class.
+- Injects properties into React class components.
+- Injects parameters into React functional components.
+  - Unfortuntely decorators can't be applied to global functions (seems like a big thing missing from TypeScript??) - so the injection approach for functional components doesn't use decorators.
+- Automated dependency injection. 
+  - Just add mark up and let Fusion do the wiring for you.
+- Detects and breaks circular references (with an error) at any level of nesting.
+  - But only when NODE_ENV is not set to "production" (to make it fast in production).
 - Unit tested.
-- Automatically detects circular dependencies when NODE_ENV is not set to "production".
 
 # Examples
 
-See the examples sub-directory for runnable Node.js and React examples.
+See [the `examples` sub-directory](https://github.com/ashleydavis/fusion/tree/master/examples) in this repo for runnable Node.js and React examples.
 
 Read the individual readme files for instructions.
+
+There's also [a separate repo](https://github.com/ashleydavis/fusion-examples) with separate examples for React class components and functional components.
 
 # Usage
 
@@ -39,7 +42,7 @@ First enable decorators in your `tsconfig.json` file:
 "experimentalDecorators": true
 ```
 
-Install it:
+Install the Fusion library:
 
 ```bash
 npm install --save @codecapers/fusion
@@ -55,6 +58,7 @@ import { InjectProperty, InjectableClass, InjectableSingleton, injectable } from
 
 Create dependencies that can be injected:
 
+### `log.ts`
 ```typescript
 //
 // Interface to the logging service.
@@ -80,7 +84,11 @@ class Log implements ILog {
 
 Mark up your class to have dependencies injected:
 
+### `my-class.ts`
 ```typescript
+import { InjectProperty, InjectableClass } from "@codecapers/fusion";
+import { ILog } from "./log";
+
 @InjectableClass()
 class MyClass {
 
@@ -98,18 +106,22 @@ class MyClass {
         //
         this.log.info("Hello world!");
     }
-    
+
+    // ... Other functions and other stuff ...
 }
 ```
 
 Now instance your injectable class:
 
+
 ```typescript
+import { MyClass } from "./my-class";
+
 // The logging singleton is lazily created at this point.
 const myObject = new MyClass(); 
 ```
 
-Injected properties are solved during constructor after the constructor of class has been called.
+Injected properties are solved during construction and available for use after the consturctor has returned.
 
 So after your class is constructed you can call functions that rely on injected properties:
 
@@ -123,6 +135,7 @@ This can be used for injection into React functional components.
 
 Create a functional component that needs dependencies:
 
+### `my-component.jsx`
 ```javascript
 import React from "react";
 import { injectable } from "@codecapers/fusion";
@@ -141,16 +154,18 @@ function myComponent(props, context, dependency1, dependency2) {
 
 Wrap your functional component in the `injectable` higher order component (HOC):
 
-```
+### `my-component.jsx` (extended)
+```javascript
 export default injectable(myComponent, ["IDependency1", "IDependency2"]);
 ```
 
-The export component will have the dependencies injected as parameters in the order specified (after props and context of course).
+The exported component will have the dependencies injected as parameters in the order specified (after props and context of course).
 
 ## Getting rid of the magic strings
 
-I like to get of the magic string by using constants co-located with the dependencies:
+I like to get rid of the magic string by using constants co-located with the dependencies:
 
+### `log.ts`
 ```javascript
 const ILog_id = "ILog";
 
@@ -174,6 +189,7 @@ class Log implements ILog {
 
 Then use the constant to identify your dependencies:
 
+### `my-class.ts`
 ```typescript
 @InjectableClass()
 class MyClass {

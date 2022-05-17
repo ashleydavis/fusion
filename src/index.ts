@@ -8,7 +8,10 @@ let injectorEnabled = true;
 //
 let automaticSingletons = true;
 
-let enableCircularCheck = process && process.env && process.env.NODE_ENV !== "production";
+//
+// Allows checking for circular dependencies (there's a performance cost to this, so only enabled on request).
+//
+let enableCircularCheck = false;
 
 //
 // Enables automatic singleons.
@@ -22,6 +25,20 @@ export function enableAutomaticSingletons(): void {
 //
 export function disableAutomaticSingletons(): void {
     automaticSingletons = false;
+}
+
+//
+// Enables circular dependency checking.
+//
+export function enableCircularDependencyCheck() {
+    enableCircularCheck = true;
+}
+
+//
+// Disables circular dependency checking.
+//
+export function disableCircularDependencyCheck() {
+    enableCircularCheck = false;
 }
 
 //

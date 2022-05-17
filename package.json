@@ -1,6 +1,6 @@
 {
     "name": "@codecapers/fusion",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "description": "A simple automated dependency injection library for TypeScript, supporting React class and functional compoents.",
     "main": "build/index.js",
     "types": "build/index.d.ts",
